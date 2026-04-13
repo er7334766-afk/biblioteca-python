@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 import os
 
 import pyodbc
@@ -68,7 +69,11 @@ def get_db_connection():
                 "MultipleActiveResultSets=False;", ""
             )
 
-    return pyodbc.connect(connection_string, autocommit=False)
+    try:
+        return pyodbc.connect(connection_string, autocommit=False)
+    except Exception as exc:
+        logging.exception("Database connection failed")
+        raise
 
 
 def query_db(sql, params=None, one=False):
@@ -578,6 +583,12 @@ def inject_user():
         "user_loans_count": user_loans_count,
         "book_loans_count": book_loans_count,
     }
+
+
+@app.errorhandler(Exception)
+def handle_exception(exc):
+    logging.exception("Unhandled exception")
+    return f"<h1>Internal Server Error</h1><pre>{str(exc)}</pre>", 500
 
 
 if __name__ == "__main__":
