@@ -26,30 +26,44 @@ AZURE_SQL_CONNECTION_STRING = os.environ.get(
 
 
 def get_sql_server_driver():
-    for version in ("18", "17"):
-        match = next(
-            (d for d in pyodbc.drivers() if f"odbc driver {version}" in d.lower()),
-            None,
-        )
+    candidate_names = [
+        "ODBC Driver 18 for SQL Server",
+        "ODBC Driver 17 for SQL Server",
+        "ODBC Driver 13 for SQL Server",
+        "SQL Server",
+        "FreeTDS",
+    ]
+    installed = [d for d in pyodbc.drivers()]
+    for want in candidate_names:
+        match = next((d for d in installed if d.lower() == want.lower()), None)
         if match:
             return match
-    generic = next((d for d in pyodbc.drivers() if d.lower() == "sql server"), None)
-    if generic:
-        return generic
-    raise RuntimeError(
-        "No se encontró un driver ODBC compatible para Azure SQL. "
-        "Instala 'ODBC Driver 18 for SQL Server' o 'ODBC Driver 17 for SQL Server'."
-    )
+    return None
 
 
 def normalize_connection_string(connection_string: str) -> str:
-    if "User ID=" in connection_string and "UID=" not in connection_string:
-        connection_string = connection_string.replace("User ID=", "UID=")
-    if "Password=" in connection_string and "PWD=" not in connection_string:
-        connection_string = connection_string.replace("Password=", "PWD=")
-    if "Trusted_Connection" not in connection_string:
-        connection_string += "Trusted_Connection=no;"
-    return connection_string
+    cs = connection_string.strip()
+    if "User ID=" in cs and "UID=" not in cs:
+        cs = cs.replace("User ID=", "UID=")
+    if "Password=" in cs and "PWD=" not in cs:
+        cs = cs.replace("Password=", "PWD=")
+    if "Trusted_Connection" not in cs:
+        if not cs.endswith(";"):
+            cs += ";"
+        cs += "Trusted_Connection=no;"
+    return cs
+
+
+def replace_driver_name(connection_string: str, driver_name: str) -> str:
+    import re
+
+    if re.search(r"(?i)DRIVER=\{[^}]+\}", connection_string):
+        return re.sub(r"(?i)DRIVER=\{[^}]+\}", f"DRIVER={{{driver_name}}}", connection_string)
+    if re.search(r"(?i)Driver=[^;]+", connection_string):
+        return re.sub(r"(?i)Driver=[^;]+", f"Driver={driver_name}", connection_string)
+    if not connection_string.endswith(";"):
+        connection_string += ";"
+    return f"DRIVER={{{driver_name}}};{connection_string}"
 
 
 def get_db_connection():
@@ -59,21 +73,28 @@ def get_db_connection():
         )
 
     connection_string = normalize_connection_string(AZURE_SQL_CONNECTION_STRING)
-    if "DRIVER={ODBC Driver 18 for SQL Server}" in connection_string:
-        driver_name = get_sql_server_driver()
-        if driver_name != "ODBC Driver 18 for SQL Server":
-            connection_string = connection_string.replace(
-                "ODBC Driver 18 for SQL Server", driver_name
-            )
-            connection_string = connection_string.replace(
-                "MultipleActiveResultSets=False;", ""
-            )
+    driver_name = get_sql_server_driver()
+    if driver_name:
+        connection_string = replace_driver_name(connection_string, driver_name)
+    else:
+        installed = [d for d in pyodbc.drivers()]
+        raise RuntimeError(
+            "No se encontró un driver ODBC compatible para Azure SQL en el entorno. "
+            f"Drivers instalados: {installed}. "
+            "Instala 'ODBC Driver 18 for SQL Server' o 'ODBC Driver 17 for SQL Server', "
+            "o despliega la app en un contenedor con el driver instalado."
+        )
 
     try:
         return pyodbc.connect(connection_string, autocommit=False)
-    except Exception as exc:
-        logging.exception("Database connection failed")
-        raise
+    except pyodbc.Error as exc:
+        installed = [d for d in pyodbc.drivers()]
+        raise RuntimeError(
+            "Error al conectar con Azure SQL. "
+            f"Driver usado: {driver_name}. "
+            f"Drivers instalados: {installed}. "
+            f"Detalle: {exc}"
+        ) from exc
 
 
 def query_db(sql, params=None, one=False):
