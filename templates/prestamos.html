@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Préstamos y devoluciones</h2>
+</div>
+<div class="table-responsive shadow-sm rounded">
+  <table class="table table-hover align-middle mb-0 bg-white">
+    <thead class="table-dark">
+      <tr>
+        <th>Libro</th>
+        <th>Usuario</th>
+        <th>Fecha</th>
+        <th>Estado</th>
+        <th class="text-end">Acción</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for loan in loans %}
+      <tr>
+        <td>{{ (books | selectattr('id', 'equalto', loan.book_id) | first).title }}</td>
+        <td>{{ (users | selectattr('id', 'equalto', loan.user_id) | first).name }}</td>
+        <td>{{ loan.start_date.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td>
+          {% if loan.returned %}
+            <span class="badge bg-success">Devuelto</span>
+          {% else %}
+            <span class="badge bg-warning text-dark">Activo</span>
+          {% endif %}
+        </td>
+        <td class="text-end">
+          {% if not loan.returned %}
+          <form method="post" class="d-inline">
+            <input type="hidden" name="action" value="return" />
+            <input type="hidden" name="loan_id" value="{{ loan.id }}" />
+            <button class="btn btn-sm btn-outline-success">Devolver</button>
+          </form>
+          {% else %}
+          <span class="text-muted">Sin acción</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="text-center">No hay préstamos registrados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

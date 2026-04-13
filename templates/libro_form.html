@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header">{{ action }} libro</div>
+      <div class="card-body">
+        <form method="post">
+          <div class="mb-3">
+            <label class="form-label">Título</label>
+            <input name="title" type="text" class="form-control" required value="{{ book.title if book }}" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Autor</label>
+            <input name="author" type="text" class="form-control" required value="{{ book.author if book }}" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Categoría</label>
+            <select name="category_id" class="form-select" required>
+              {% for category in categories %}
+              <option value="{{ category.id }}" {% if book and book.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Ejemplares totales</label>
+            <input name="total" type="number" min="1" class="form-control" required value="{{ book.total if book else 1 }}" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Descripción</label>
+            <textarea name="description" class="form-control" rows="3">{{ book.description if book }}</textarea>
+          </div>
+          <button class="btn btn-primary">{{ action }}</button>
+          <a href="{{ url_for('list_books') }}" class="btn btn-secondary ms-2">Cancelar</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
