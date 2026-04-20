@@ -8,7 +8,7 @@ from flask import Flask, flash, redirect, render_template, request, session, url
 app = Flask(__name__)
 app.secret_key = "clave_de_prueba_cambiar"
 
-DEFAULT_AZURE_SQL_CONNECTION_STRING = (
+CADENA_CONEXION_AZURE_SQL_POR_DEFECTO = (
     "DRIVER={ODBC Driver 18 for SQL Server};"
     "Server=tcp:ed.database.windows.net,1433;"
     "Database=si;"
@@ -19,14 +19,14 @@ DEFAULT_AZURE_SQL_CONNECTION_STRING = (
     "Connection Timeout=30;"
 )
 
-AZURE_SQL_CONNECTION_STRING = os.environ.get(
+CADENA_CONEXION_AZURE_SQL = os.environ.get(
     "AZURE_SQL_CONNECTION_STRING",
-    DEFAULT_AZURE_SQL_CONNECTION_STRING,
+    CADENA_CONEXION_AZURE_SQL_POR_DEFECTO,
 )
 
 
-def get_sql_server_driver():
-    candidate_names = [
+def obtener_controlador_sql_server():
+    nombres_candidatos = [
         "ODBC Driver 18 for SQL Server",
         "ODBC Driver 17 for SQL Server",
         "ODBC Driver 13 for SQL Server",
@@ -34,15 +34,15 @@ def get_sql_server_driver():
         "FreeTDS",
     ]
     installed = [d for d in pyodbc.drivers()]
-    for want in candidate_names:
+    for want in nombres_candidatos:
         match = next((d for d in installed if d.lower() == want.lower()), None)
         if match:
             return match
     return None
 
 
-def normalize_connection_string(connection_string: str) -> str:
-    cs = connection_string.strip()
+def normalizar_cadena_conexion(cadena_conexion: str) -> str:
+    cs = cadena_conexion.strip()
     if "User ID=" in cs and "UID=" not in cs:
         cs = cs.replace("User ID=", "UID=")
     if "Password=" in cs and "PWD=" not in cs:
@@ -54,28 +54,28 @@ def normalize_connection_string(connection_string: str) -> str:
     return cs
 
 
-def replace_driver_name(connection_string: str, driver_name: str) -> str:
+def reemplazar_nombre_controlador(cadena_conexion: str, nombre_controlador: str) -> str:
     import re
 
-    if re.search(r"(?i)DRIVER=\{[^}]+\}", connection_string):
-        return re.sub(r"(?i)DRIVER=\{[^}]+\}", f"DRIVER={{{driver_name}}}", connection_string)
-    if re.search(r"(?i)Driver=[^;]+", connection_string):
-        return re.sub(r"(?i)Driver=[^;]+", f"Driver={driver_name}", connection_string)
-    if not connection_string.endswith(";"):
-        connection_string += ";"
-    return f"DRIVER={{{driver_name}}};{connection_string}"
+    if re.search(r"(?i)DRIVER=\{[^}]+\}", cadena_conexion):
+        return re.sub(r"(?i)DRIVER=\{[^}]+\}", f"DRIVER={{{nombre_controlador}}}", cadena_conexion)
+    if re.search(r"(?i)Driver=[^;]+", cadena_conexion):
+        return re.sub(r"(?i)Driver=[^;]+", f"Driver={nombre_controlador}", cadena_conexion)
+    if not cadena_conexion.endswith(";"):
+        cadena_conexion += ";"
+    return f"DRIVER={{{nombre_controlador}}};{cadena_conexion}"
 
 
-def get_db_connection():
-    if not AZURE_SQL_CONNECTION_STRING:
+def obtener_conexion_bd():
+    if not CADENA_CONEXION_AZURE_SQL:
         raise RuntimeError(
-            "Configure AZURE_SQL_CONNECTION_STRING with the correct Azure SQL credentials."
+            "Configure CADENA_CONEXION_AZURE_SQL with the correct Azure SQL credentials."
         )
 
-    connection_string = normalize_connection_string(AZURE_SQL_CONNECTION_STRING)
-    driver_name = get_sql_server_driver()
-    if driver_name:
-        connection_string = replace_driver_name(connection_string, driver_name)
+    cadena_conexion = normalizar_cadena_conexion(CADENA_CONEXION_AZURE_SQL)
+    nombre_controlador = obtener_controlador_sql_server()
+    if nombre_controlador:
+        cadena_conexion = reemplazar_nombre_controlador(cadena_conexion, nombre_controlador)
     else:
         installed = [d for d in pyodbc.drivers()]
         raise RuntimeError(
@@ -86,177 +86,188 @@ def get_db_connection():
         )
 
     try:
-        return pyodbc.connect(connection_string, autocommit=False)
+        return pyodbc.connect(cadena_conexion, autocommit=False)
     except pyodbc.Error as exc:
         installed = [d for d in pyodbc.drivers()]
         raise RuntimeError(
             "Error al conectar con Azure SQL. "
-            f"Driver usado: {driver_name}. "
+            f"Driver usado: {nombre_controlador}. "
             f"Drivers instalados: {installed}. "
             f"Detalle: {exc}"
         ) from exc
 
 
-def query_db(sql, params=None, one=False):
-    connection = get_db_connection()
-    cursor = connection.cursor()
-    cursor.execute(sql, params or ())
-    columns = [column[0] for column in cursor.description] if cursor.description else []
-    rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+def consultar_bd(consulta_sql, parametros=None, una_sola_fila=False):
+    conexion = obtener_conexion_bd()
+    cursor = conexion.cursor()
+    cursor.execute(consulta_sql, parametros or ())
+    columnas = [columna[0] for columna in cursor.description] if cursor.description else []
+    filas = [dict(zip(columnas, fila)) for fila in cursor.fetchall()]
     cursor.close()
-    connection.close()
-    return rows[0] if one and rows else rows
+    conexion.close()
+    return filas[0] if una_sola_fila and filas else filas
 
 
-def execute_db(sql, params=None):
-    connection = get_db_connection()
-    cursor = connection.cursor()
-    cursor.execute(sql, params or ())
-    connection.commit()
-    last_id = None
+def ejecutar_bd(consulta_sql, parametros=None):
+    conexion = obtener_conexion_bd()
+    cursor = conexion.cursor()
+    cursor.execute(consulta_sql, parametros or ())
+    conexion.commit()
+    ultimo_id = None
     try:
         cursor.execute("SELECT SCOPE_IDENTITY()")
-        row = cursor.fetchone()
-        if row:
-            last_id = row[0]
+        fila = cursor.fetchone()
+        if fila:
+            ultimo_id = fila[0]
     except Exception:
-        last_id = None
+        ultimo_id = None
     cursor.close()
-    connection.close()
-    return last_id
+    conexion.close()
+    return ultimo_id
 
 
-def current_user():
-    user_id = session.get("user_id")
-    return get_user_by_id(user_id) if user_id else None
+def usuario_actual():
+    id_usuario = session.get("id_usuario")
+    return obtener_usuario_por_id(id_usuario) if id_usuario else None
 
 
-def require_login():
-    if not session.get("user_id"):
-        return redirect(url_for("login"))
+def requerir_inicio_sesion():
+    if not session.get("id_usuario"):
+        return redirect(url_for("iniciar_sesion"))
     return None
 
 
-def require_admin():
-    user = current_user()
-    if not user or user.get("role") != "admin":
+def requerir_administrador():
+    usuario = usuario_actual()
+    if not usuario or usuario.get("role") != "admin":
         flash("Acceso denegado. Solo administradores.", "warning")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("panel"))
     return None
 
 
-def get_user_by_username(username):
-    return query_db("SELECT * FROM usuarios WHERE username = ?", (username,), one=True)
-
-
-def get_user_by_id(user_id):
-    return query_db("SELECT * FROM usuarios WHERE id = ?", (user_id,), one=True)
-
-
-def get_book(book_id):
-    return query_db("SELECT * FROM libros WHERE id = ?", (book_id,), one=True)
-
-
-def get_category(category_id):
-    return query_db("SELECT * FROM categorias WHERE id = ?", (category_id,), one=True)
-
-
-def search_books(query, category_id):
-    sql = "SELECT * FROM libros"
-    filters = []
-    params = []
-    query_text = (query or "").strip().lower()
-
-    if query_text:
-        filters.append("(LOWER(title) LIKE ? OR LOWER(author) LIKE ?)")
-        like_value = f"%{query_text}%"
-        params.extend([like_value, like_value])
-
-    if category_id:
-        filters.append("category_id = ?")
-        params.append(category_id)
-
-    if filters:
-        sql += " WHERE " + " AND ".join(filters)
-
-    sql += " ORDER BY title"
-    return query_db(sql, params)
-
-
-def book_loans_count(book_id):
-    result = query_db(
-        "SELECT COUNT(*) AS total FROM prestamos WHERE book_id = ?", (book_id,), one=True
+def obtener_usuario_por_nombre_usuario(nombre_usuario):
+    return consultar_bd(
+        "SELECT * FROM usuarios WHERE username = ?",
+        (nombre_usuario,),
+        una_sola_fila=True,
     )
-    return result["total"] if result else 0
 
 
-def user_loans_count(user_id):
-    result = query_db(
-        "SELECT COUNT(*) AS total FROM prestamos WHERE user_id = ?", (user_id,), one=True
+def obtener_usuario_por_id(id_usuario):
+    return consultar_bd("SELECT * FROM usuarios WHERE id = ?", (id_usuario,), una_sola_fila=True)
+
+
+def obtener_libro(id_libro):
+    return consultar_bd("SELECT * FROM libros WHERE id = ?", (id_libro,), una_sola_fila=True)
+
+
+def obtener_categoria(id_categoria):
+    return consultar_bd("SELECT * FROM categorias WHERE id = ?", (id_categoria,), una_sola_fila=True)
+
+
+def buscar_libros(texto_consulta, id_categoria):
+    consulta_sql = "SELECT * FROM libros"
+    filtros = []
+    parametros = []
+    texto_busqueda = (texto_consulta or "").strip().lower()
+
+    if texto_busqueda:
+        filtros.append("(LOWER(title) LIKE ? OR LOWER(author) LIKE ?)")
+        valor_like = f"%{texto_busqueda}%"
+        parametros.extend([valor_like, valor_like])
+
+    if id_categoria:
+        filtros.append("category_id = ?")
+        parametros.append(id_categoria)
+
+    if filtros:
+        consulta_sql += " WHERE " + " AND ".join(filtros)
+
+    consulta_sql += " ORDER BY title"
+    return consultar_bd(consulta_sql, parametros)
+
+
+def contar_prestamos_libro(id_libro):
+    resultado = consultar_bd(
+        "SELECT COUNT(*) AS total FROM prestamos WHERE book_id = ?",
+        (id_libro,),
+        una_sola_fila=True,
     )
-    return result["total"] if result else 0
+    return resultado["total"] if resultado else 0
 
 
-def loans_by_date():
-    rows = query_db(
+def contar_prestamos_usuario(id_usuario):
+    resultado = consultar_bd(
+        "SELECT COUNT(*) AS total FROM prestamos WHERE user_id = ?",
+        (id_usuario,),
+        una_sola_fila=True,
+    )
+    return resultado["total"] if resultado else 0
+
+
+def prestamos_por_fecha():
+    filas = consultar_bd(
         "SELECT CONVERT(date, start_date) AS fecha, COUNT(*) AS total FROM prestamos GROUP BY CONVERT(date, start_date) ORDER BY fecha DESC"
     )
-    summary = []
-    for row in rows:
-        fecha = row["fecha"]
+    resumen = []
+    for fila in filas:
+        fecha = fila["fecha"]
         if hasattr(fecha, "strftime"):
             fecha_str = fecha.strftime("%Y-%m-%d")
         else:
             fecha_str = str(fecha)
-        summary.append((fecha_str, row["total"]))
-    return summary
+        resumen.append((fecha_str, fila["total"]))
+    return resumen
 
 
 @app.route("/")
-def index():
-    if session.get("user_id"):
-        return redirect(url_for("dashboard"))
-    return redirect(url_for("login"))
+def inicio():
+    if session.get("id_usuario"):
+        return redirect(url_for("panel"))
+    return redirect(url_for("iniciar_sesion"))
 
 
 @app.route("/login", methods=["GET", "POST"])
-def login():
+def iniciar_sesion():
     if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        password = request.form.get("password", "").strip()
-        user = get_user_by_username(username)
-        if user and user["password"] == password:
-            session["user_id"] = user["id"]
-            flash(f"Bienvenido {user['name']}", "success")
-            return redirect(url_for("dashboard"))
+        nombre_usuario = request.form.get("username", "").strip()
+        contrasena = request.form.get("password", "").strip()
+        usuario = obtener_usuario_por_nombre_usuario(nombre_usuario)
+        if usuario and usuario["password"] == contrasena:
+            session["id_usuario"] = usuario["id"]
+            flash(f"Bienvenido {usuario['name']}", "success")
+            return redirect(url_for("panel"))
         flash("Usuario o contraseña inválidos.", "danger")
     return render_template("inicio_sesion.html")
 
 
 @app.route("/logout")
-def logout():
+def cerrar_sesion():
     session.clear()
     flash("Has cerrado sesión correctamente.", "info")
-    return redirect(url_for("login"))
+    return redirect(url_for("iniciar_sesion"))
 
 
 @app.route("/dashboard")
-def dashboard():
-    if redirect_result := require_login():
-        return redirect_result
-    user = current_user()
-    total_books = query_db("SELECT COUNT(*) AS total FROM libros", one=True)["total"]
-    total_users = query_db("SELECT COUNT(*) AS total FROM usuarios", one=True)["total"]
-    total_loans = query_db("SELECT COUNT(*) AS total FROM prestamos WHERE returned = 0", one=True)["total"]
-    recent_loans = query_db("SELECT TOP 5 * FROM prestamos ORDER BY start_date DESC")
-    top_users = query_db(
+def panel():
+    if resultado_redireccion := requerir_inicio_sesion():
+        return resultado_redireccion
+    usuario = usuario_actual()
+    total_libros = consultar_bd("SELECT COUNT(*) AS total FROM libros", una_sola_fila=True)["total"]
+    total_usuarios = consultar_bd("SELECT COUNT(*) AS total FROM usuarios", una_sola_fila=True)["total"]
+    total_prestamos = consultar_bd(
+        "SELECT COUNT(*) AS total FROM prestamos WHERE returned = 0",
+        una_sola_fila=True,
+    )["total"]
+    prestamos_recientes = consultar_bd("SELECT TOP 5 * FROM prestamos ORDER BY start_date DESC")
+    usuarios_top = consultar_bd(
         "SELECT TOP 5 u.id, u.name, u.role, COUNT(p.id) AS loan_count "
         "FROM usuarios u "
         "LEFT JOIN prestamos p ON p.user_id = u.id "
         "GROUP BY u.id, u.name, u.role "
         "ORDER BY loan_count DESC"
     )
-    top_books = query_db(
+    libros_top = consultar_bd(
         "SELECT TOP 5 l.id, l.title, l.author, l.category_id, l.available, l.total, COUNT(p.id) AS loan_count "
         "FROM libros l "
         "LEFT JOIN prestamos p ON p.book_id = l.id "
@@ -265,34 +276,34 @@ def dashboard():
     )
     return render_template(
         "panel.html",
-        user=user,
-        total_books=total_books,
-        total_users=total_users,
-        total_loans=total_loans,
-        recent_loans=recent_loans,
-        top_users=top_users,
-        top_books=top_books,
+        usuario=usuario,
+        total_libros=total_libros,
+        total_usuarios=total_usuarios,
+        total_prestamos=total_prestamos,
+        prestamos_recientes=prestamos_recientes,
+        usuarios_top=usuarios_top,
+        libros_top=libros_top,
     )
 
 
 @app.route("/users")
-def list_users():
-    if redirect_result := require_login():
-        return redirect_result
-    if redirect_result := require_admin():
-        return redirect_result
-    users_list = query_db("SELECT * FROM usuarios ORDER BY name")
-    return render_template("usuarios.html", users=users_list)
+def listar_usuarios():
+    if resultado_redireccion := requerir_inicio_sesion():
+        return resultado_redireccion
+    if resultado_redireccion := requerir_administrador():
+        return resultado_redireccion
+    lista_usuarios = consultar_bd("SELECT * FROM usuarios ORDER BY name")
+    return render_template("usuarios.html", usuarios=lista_usuarios)
 
 
 @app.route("/users/new", methods=["GET", "POST"])
-def add_user():
-    if redirect_result := require_login():
-        return redirect_result
-    if redirect_result := require_admin():
-        return redirect_result
+def agregar_usuario():
+    if resultado_redireccion := requerir_inicio_sesion():
+        return resultado_redireccion
+    if resultado_redireccion := requerir_administrador():
+        return resultado_redireccion
     if request.method == "POST":
-        execute_db(
+        ejecutar_bd(
             "INSERT INTO usuarios (username, password, role, name) VALUES (?, ?, ?, ?)",
             (
                 request.form["username"].strip(),
@@ -302,149 +313,149 @@ def add_user():
             ),
         )
         flash("Usuario agregado correctamente.", "success")
-        return redirect(url_for("list_users"))
-    return render_template("usuario_form.html", action="Crear", user=None)
+        return redirect(url_for("listar_usuarios"))
+    return render_template("usuario_form.html", action="Crear", usuario=None)
 
 
-@app.route("/users/edit/<int:user_id>", methods=["GET", "POST"])
-def edit_user(user_id):
-    if redirect_result := require_login():
-        return redirect_result
-    if redirect_result := require_admin():
-        return redirect_result
-    user_item = get_user_by_id(user_id)
-    if not user_item:
+@app.route("/users/edit/<int:id_usuario>", methods=["GET", "POST"])
+def editar_usuario(id_usuario):
+    if resultado_redireccion := requerir_inicio_sesion():
+        return resultado_redireccion
+    if resultado_redireccion := requerir_administrador():
+        return resultado_redireccion
+    usuario_item = obtener_usuario_por_id(id_usuario)
+    if not usuario_item:
         flash("Usuario no encontrado.", "warning")
-        return redirect(url_for("list_users"))
+        return redirect(url_for("listar_usuarios"))
     if request.method == "POST":
-        password = request.form.get("password", "").strip()
-        if password:
-            execute_db(
+        contrasena = request.form.get("password", "").strip()
+        if contrasena:
+            ejecutar_bd(
                 "UPDATE usuarios SET username = ?, password = ?, role = ?, name = ? WHERE id = ?",
                 (
                     request.form["username"].strip(),
-                    password,
+                    contrasena,
                     request.form["role"],
                     request.form["name"].strip(),
-                    user_id,
+                    id_usuario,
                 ),
             )
         else:
-            execute_db(
+            ejecutar_bd(
                 "UPDATE usuarios SET username = ?, role = ?, name = ? WHERE id = ?",
                 (
                     request.form["username"].strip(),
                     request.form["role"],
                     request.form["name"].strip(),
-                    user_id,
+                    id_usuario,
                 ),
             )
         flash("Usuario actualizado correctamente.", "success")
-        return redirect(url_for("list_users"))
-    return render_template("usuario_form.html", action="Editar", user=user_item)
+        return redirect(url_for("listar_usuarios"))
+    return render_template("usuario_form.html", action="Editar", usuario=usuario_item)
 
 
-@app.route("/users/delete/<int:user_id>")
-def delete_user(user_id):
-    if redirect_result := require_login():
-        return redirect_result
-    if redirect_result := require_admin():
-        return redirect_result
-    execute_db("DELETE FROM usuarios WHERE id = ?", (user_id,))
+@app.route("/users/delete/<int:id_usuario>")
+def eliminar_usuario(id_usuario):
+    if resultado_redireccion := requerir_inicio_sesion():
+        return resultado_redireccion
+    if resultado_redireccion := requerir_administrador():
+        return resultado_redireccion
+    ejecutar_bd("DELETE FROM usuarios WHERE id = ?", (id_usuario,))
     flash("Usuario eliminado.", "info")
-    return redirect(url_for("list_users"))
+    return redirect(url_for("listar_usuarios"))
 
 
 @app.route("/categories")
-def list_categories():
-    if redirect_result := require_login():
-        return redirect_result
-    categories_list = query_db("SELECT * FROM categorias ORDER BY name")
-    return render_template("categorias.html", categories=categories_list)
+def listar_categorias():
+    if resultado_redireccion := requerir_inicio_sesion():
+        return resultado_redireccion
+    lista_categorias = consultar_bd("SELECT * FROM categorias ORDER BY name")
+    return render_template("categorias.html", categorias=lista_categorias)
 
 
 @app.route("/categories/new", methods=["GET", "POST"])
-def add_category():
-    if redirect_result := require_login():
-        return redirect_result
-    if redirect_result := require_admin():
-        return redirect_result
+def agregar_categoria():
+    if resultado_redireccion := requerir_inicio_sesion():
+        return resultado_redireccion
+    if resultado_redireccion := requerir_administrador():
+        return resultado_redireccion
     if request.method == "POST":
-        execute_db(
+        ejecutar_bd(
             "INSERT INTO categorias (name) VALUES (?)",
             (request.form["name"].strip(),),
         )
         flash("Categoría agregada correctamente.", "success")
-        return redirect(url_for("list_categories"))
-    return render_template("categoria_form.html", action="Crear", category=None)
+        return redirect(url_for("listar_categorias"))
+    return render_template("categoria_form.html", action="Crear", categoria=None)
 
 
-@app.route("/categories/edit/<int:category_id>", methods=["GET", "POST"])
-def edit_category(category_id):
-    if redirect_result := require_login():
-        return redirect_result
-    if redirect_result := require_admin():
-        return redirect_result
-    category = get_category(category_id)
-    if not category:
+@app.route("/categories/edit/<int:id_categoria>", methods=["GET", "POST"])
+def editar_categoria(id_categoria):
+    if resultado_redireccion := requerir_inicio_sesion():
+        return resultado_redireccion
+    if resultado_redireccion := requerir_administrador():
+        return resultado_redireccion
+    categoria = obtener_categoria(id_categoria)
+    if not categoria:
         flash("Categoría no encontrada.", "warning")
-        return redirect(url_for("list_categories"))
+        return redirect(url_for("listar_categorias"))
     if request.method == "POST":
-        execute_db(
+        ejecutar_bd(
             "UPDATE categorias SET name = ? WHERE id = ?",
-            (request.form["name"].strip(), category_id),
+            (request.form["name"].strip(), id_categoria),
         )
         flash("Categoría actualizada correctamente.", "success")
-        return redirect(url_for("list_categories"))
-    return render_template("categoria_form.html", action="Editar", category=category)
+        return redirect(url_for("listar_categorias"))
+    return render_template("categoria_form.html", action="Editar", categoria=categoria)
 
 
-@app.route("/categories/delete/<int:category_id>")
-def delete_category(category_id):
-    if redirect_result := require_login():
-        return redirect_result
-    if redirect_result := require_admin():
-        return redirect_result
-    associated = query_db(
+@app.route("/categories/delete/<int:id_categoria>")
+def eliminar_categoria(id_categoria):
+    if resultado_redireccion := requerir_inicio_sesion():
+        return resultado_redireccion
+    if resultado_redireccion := requerir_administrador():
+        return resultado_redireccion
+    asociado = consultar_bd(
         "SELECT COUNT(*) AS total FROM libros WHERE category_id = ?",
-        (category_id,),
-        one=True,
+        (id_categoria,),
+        una_sola_fila=True,
     )
-    if associated and associated["total"] > 0:
+    if asociado and asociado["total"] > 0:
         flash("No se puede eliminar una categoría con libros asignados.", "warning")
-        return redirect(url_for("list_categories"))
-    execute_db("DELETE FROM categorias WHERE id = ?", (category_id,))
+        return redirect(url_for("listar_categorias"))
+    ejecutar_bd("DELETE FROM categorias WHERE id = ?", (id_categoria,))
     flash("Categoría eliminada.", "info")
-    return redirect(url_for("list_categories"))
+    return redirect(url_for("listar_categorias"))
 
 
 @app.route("/books")
-def list_books():
-    if redirect_result := require_login():
-        return redirect_result
-    query = request.args.get("q", "")
-    category_id = request.args.get("category_id")
-    category_id = int(category_id) if category_id and category_id.isdigit() else None
-    filtered_books = search_books(query, category_id)
-    categories_list = query_db("SELECT * FROM categorias ORDER BY name")
+def listar_libros():
+    if resultado_redireccion := requerir_inicio_sesion():
+        return resultado_redireccion
+    consulta = request.args.get("q", "")
+    id_categoria = request.args.get("category_id")
+    id_categoria = int(id_categoria) if id_categoria and id_categoria.isdigit() else None
+    libros_filtrados = buscar_libros(consulta, id_categoria)
+    lista_categorias = consultar_bd("SELECT * FROM categorias ORDER BY name")
     return render_template(
         "libros.html",
-        books=filtered_books,
-        categories=categories_list,
-        query=query,
-        selected_category=category_id,
+        libros=libros_filtrados,
+        categorias=lista_categorias,
+        consulta=consulta,
+        categoria_seleccionada=id_categoria,
     )
 
 
 @app.route("/books/new", methods=["GET", "POST"])
-def add_book():
-    if redirect_result := require_login():
-        return redirect_result
-    if redirect_result := require_admin():
-        return redirect_result
+def agregar_libro():
+    if resultado_redireccion := requerir_inicio_sesion():
+        return resultado_redireccion
+    if resultado_redireccion := requerir_administrador():
+        return resultado_redireccion
     if request.method == "POST":
         total = int(request.form["total"])
-        execute_db(
+        ejecutar_bd(
             "INSERT INTO libros (title, author, category_id, available, total, description) VALUES (?, ?, ?, ?, ?, ?)",
             (
                 request.form["title"].strip(),
@@ -456,158 +467,162 @@ def add_book():
             ),
         )
         flash("Libro agregado correctamente.", "success")
-        return redirect(url_for("list_books"))
-    categories_list = query_db("SELECT * FROM categorias ORDER BY name")
-    return render_template("libro_form.html", action="Crear", book=None, categories=categories_list)
+        return redirect(url_for("listar_libros"))
+    lista_categorias = consultar_bd("SELECT * FROM categorias ORDER BY name")
+    return render_template("libro_form.html", action="Crear", libro=None, categorias=lista_categorias)
 
 
-@app.route("/books/edit/<int:book_id>", methods=["GET", "POST"])
-def edit_book(book_id):
-    if redirect_result := require_login():
-        return redirect_result
-    if redirect_result := require_admin():
-        return redirect_result
-    book = get_book(book_id)
-    if not book:
+@app.route("/books/edit/<int:id_libro>", methods=["GET", "POST"])
+def editar_libro(id_libro):
+    if resultado_redireccion := requerir_inicio_sesion():
+        return resultado_redireccion
+    if resultado_redireccion := requerir_administrador():
+        return resultado_redireccion
+    libro = obtener_libro(id_libro)
+    if not libro:
         flash("Libro no encontrado.", "warning")
-        return redirect(url_for("list_books"))
+        return redirect(url_for("listar_libros"))
     if request.method == "POST":
-        new_total = int(request.form["total"])
-        available = max(book["available"] + (new_total - book["total"]), 0)
-        execute_db(
+        nuevo_total = int(request.form["total"])
+        disponibles = max(libro["available"] + (nuevo_total - libro["total"]), 0)
+        ejecutar_bd(
             "UPDATE libros SET title = ?, author = ?, category_id = ?, available = ?, total = ?, description = ? WHERE id = ?",
             (
                 request.form["title"].strip(),
                 request.form["author"].strip(),
                 int(request.form["category_id"]),
-                available,
-                new_total,
+                disponibles,
+                nuevo_total,
                 request.form["description"].strip(),
-                book_id,
+                id_libro,
             ),
         )
         flash("Libro actualizado correctamente.", "success")
-        return redirect(url_for("list_books"))
-    categories_list = query_db("SELECT * FROM categorias ORDER BY name")
-    return render_template("libro_form.html", action="Editar", book=book, categories=categories_list)
+        return redirect(url_for("listar_libros"))
+    lista_categorias = consultar_bd("SELECT * FROM categorias ORDER BY name")
+    return render_template("libro_form.html", action="Editar", libro=libro, categorias=lista_categorias)
 
 
-@app.route("/books/delete/<int:book_id>")
-def delete_book(book_id):
-    if redirect_result := require_login():
-        return redirect_result
-    if redirect_result := require_admin():
-        return redirect_result
-    active_loans = query_db(
+@app.route("/books/delete/<int:id_libro>")
+def eliminar_libro(id_libro):
+    if resultado_redireccion := requerir_inicio_sesion():
+        return resultado_redireccion
+    if resultado_redireccion := requerir_administrador():
+        return resultado_redireccion
+    prestamos_activos = consultar_bd(
         "SELECT COUNT(*) AS total FROM prestamos WHERE book_id = ? AND returned = 0",
-        (book_id,),
-        one=True,
+        (id_libro,),
+        una_sola_fila=True,
     )
-    if active_loans and active_loans["total"] > 0:
+    if prestamos_activos and prestamos_activos["total"] > 0:
         flash("No se puede eliminar un libro con préstamos activos.", "warning")
-        return redirect(url_for("list_books"))
-    execute_db("DELETE FROM libros WHERE id = ?", (book_id,))
+        return redirect(url_for("listar_libros"))
+    ejecutar_bd("DELETE FROM libros WHERE id = ?", (id_libro,))
     flash("Libro eliminado.", "info")
-    return redirect(url_for("list_books"))
+    return redirect(url_for("listar_libros"))
 
 
 @app.route("/loans", methods=["GET", "POST"])
-def manage_loans():
-    if redirect_result := require_login():
-        return redirect_result
-    user = current_user()
+def gestionar_prestamos():
+    if resultado_redireccion := requerir_inicio_sesion():
+        return resultado_redireccion
+    usuario = usuario_actual()
     if request.method == "POST":
-        action = request.form.get("action")
-        if action == "borrow":
-            book_id = int(request.form["book_id"])
-            book = get_book(book_id)
-            if book and book["available"] > 0:
-                execute_db(
+        accion = request.form.get("action")
+        if accion == "borrow":
+            id_libro = int(request.form["book_id"])
+            libro = obtener_libro(id_libro)
+            if libro and libro["available"] > 0:
+                ejecutar_bd(
                     "INSERT INTO prestamos (book_id, user_id, start_date, returned) VALUES (?, ?, ?, ?)",
-                    (book_id, user["id"], datetime.now(), 0),
+                    (id_libro, usuario["id"], datetime.now(), 0),
                 )
-                execute_db(
+                ejecutar_bd(
                     "UPDATE libros SET available = available - 1 WHERE id = ?",
-                    (book_id,),
+                    (id_libro,),
                 )
                 flash("Préstamo registrado correctamente.", "success")
             else:
                 flash("No hay ejemplares disponibles para préstamo.", "danger")
-        elif action == "return":
-            loan_id = int(request.form["loan_id"])
-            loan = query_db("SELECT * FROM prestamos WHERE id = ?", (loan_id,), one=True)
-            if loan and not loan["returned"]:
-                execute_db(
+        elif accion == "return":
+            id_prestamo = int(request.form["loan_id"])
+            prestamo = consultar_bd(
+                "SELECT * FROM prestamos WHERE id = ?",
+                (id_prestamo,),
+                una_sola_fila=True,
+            )
+            if prestamo and not prestamo["returned"]:
+                ejecutar_bd(
                     "UPDATE prestamos SET returned = 1, return_date = ? WHERE id = ?",
-                    (datetime.now(), loan_id),
+                    (datetime.now(), id_prestamo),
                 )
-                execute_db(
+                ejecutar_bd(
                     "UPDATE libros SET available = available + 1 WHERE id = ?",
-                    (loan["book_id"],),
+                    (prestamo["book_id"],),
                 )
                 flash("Devolución registrada correctamente.", "success")
-        return redirect(url_for("manage_loans"))
+        return redirect(url_for("gestionar_prestamos"))
 
-    if user["role"] == "admin":
-        visible_loans = query_db("SELECT * FROM prestamos ORDER BY start_date DESC")
+    if usuario["role"] == "admin":
+        prestamos_visibles = consultar_bd("SELECT * FROM prestamos ORDER BY start_date DESC")
     else:
-        visible_loans = query_db(
+        prestamos_visibles = consultar_bd(
             "SELECT * FROM prestamos WHERE user_id = ? ORDER BY start_date DESC",
-            (user["id"],),
+            (usuario["id"],),
         )
     return render_template(
         "prestamos.html",
-        loans=visible_loans,
-        books=query_db("SELECT * FROM libros ORDER BY title"),
-        users=query_db("SELECT * FROM usuarios ORDER BY name"),
-        user=user,
+        prestamos=prestamos_visibles,
+        libros=consultar_bd("SELECT * FROM libros ORDER BY title"),
+        usuarios=consultar_bd("SELECT * FROM usuarios ORDER BY name"),
+        usuario=usuario,
     )
 
 
 @app.route("/reports")
-def reports():
-    if redirect_result := require_login():
-        return redirect_result
-    if redirect_result := require_admin():
-        return redirect_result
-    top_users = query_db(
+def reportes():
+    if resultado_redireccion := requerir_inicio_sesion():
+        return resultado_redireccion
+    if resultado_redireccion := requerir_administrador():
+        return resultado_redireccion
+    usuarios_top = consultar_bd(
         "SELECT TOP 5 u.id, u.name, u.role, COUNT(p.id) AS loan_count "
         "FROM usuarios u "
         "LEFT JOIN prestamos p ON p.user_id = u.id "
         "GROUP BY u.id, u.name, u.role "
         "ORDER BY loan_count DESC"
     )
-    top_books = query_db(
+    libros_top = consultar_bd(
         "SELECT TOP 5 l.id, l.title, l.author, l.category_id, l.available, l.total, COUNT(p.id) AS loan_count "
         "FROM libros l "
         "LEFT JOIN prestamos p ON p.book_id = l.id "
         "GROUP BY l.id, l.title, l.author, l.category_id, l.available, l.total "
         "ORDER BY loan_count DESC"
     )
-    date_summary = loans_by_date()
+    resumen_fechas = prestamos_por_fecha()
     return render_template(
         "reportes.html",
-        top_users=top_users,
-        top_books=top_books,
-        date_summary=date_summary,
+        usuarios_top=usuarios_top,
+        libros_top=libros_top,
+        resumen_fechas=resumen_fechas,
     )
 
 
 @app.context_processor
-def inject_user():
-    user = current_user()
+def inyectar_usuario():
+    usuario = usuario_actual()
     return {
-        "current_user": user,
-        "is_admin": user["role"] == "admin" if user else False,
-        "categories": query_db("SELECT * FROM categorias ORDER BY name"),
-        "get_category": get_category,
-        "user_loans_count": user_loans_count,
-        "book_loans_count": book_loans_count,
+        "usuario_actual": usuario,
+        "es_administrador": usuario["role"] == "admin" if usuario else False,
+        "categorias": consultar_bd("SELECT * FROM categorias ORDER BY name"),
+        "obtener_categoria": obtener_categoria,
+        "contar_prestamos_usuario": contar_prestamos_usuario,
+        "contar_prestamos_libro": contar_prestamos_libro,
     }
 
 
 @app.errorhandler(Exception)
-def handle_exception(exc):
+def manejar_excepcion(exc):
     logging.exception("Unhandled exception")
     return f"<h1>Internal Server Error</h1><pre>{str(exc)}</pre>", 500
 

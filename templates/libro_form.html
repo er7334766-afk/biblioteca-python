@@ -8,30 +8,30 @@
         <form method="post">
           <div class="mb-3">
             <label class="form-label">Título</label>
-            <input name="title" type="text" class="form-control" required value="{{ book.title if book }}" />
+            <input name="title" type="text" class="form-control" required value="{{ libro.title if libro }}" />
           </div>
           <div class="mb-3">
             <label class="form-label">Autor</label>
-            <input name="author" type="text" class="form-control" required value="{{ book.author if book }}" />
+            <input name="author" type="text" class="form-control" required value="{{ libro.author if libro }}" />
           </div>
           <div class="mb-3">
             <label class="form-label">Categoría</label>
             <select name="category_id" class="form-select" required>
-              {% for category in categories %}
-              <option value="{{ category.id }}" {% if book and book.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+              {% for categoria in categorias %}
+              <option value="{{ categoria.id }}" {% if libro and libro.category_id == categoria.id %}selected{% endif %}>{{ categoria.name }}</option>
               {% endfor %}
             </select>
           </div>
           <div class="mb-3">
             <label class="form-label">Ejemplares totales</label>
-            <input name="total" type="number" min="1" class="form-control" required value="{{ book.total if book else 1 }}" />
+            <input name="total" type="number" min="1" class="form-control" required value="{{ libro.total if libro else 1 }}" />
           </div>
           <div class="mb-3">
             <label class="form-label">Descripción</label>
-            <textarea name="description" class="form-control" rows="3">{{ book.description if book }}</textarea>
+            <textarea name="description" class="form-control" rows="3">{{ libro.description if libro }}</textarea>
           </div>
           <button class="btn btn-primary">{{ action }}</button>
-          <a href="{{ url_for('list_books') }}" class="btn btn-secondary ms-2">Cancelar</a>
+          <a href="{{ url_for('listar_libros') }}" class="btn btn-secondary ms-2">Cancelar</a>
         </form>
       </div>
     </div>

@@ -15,23 +15,23 @@
       </tr>
     </thead>
     <tbody>
-      {% for loan in loans %}
+      {% for prestamo in prestamos %}
       <tr>
-        <td>{{ (books | selectattr('id', 'equalto', loan.book_id) | first).title }}</td>
-        <td>{{ (users | selectattr('id', 'equalto', loan.user_id) | first).name }}</td>
-        <td>{{ loan.start_date.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td>{{ (libros | selectattr('id', 'equalto', prestamo.book_id) | first).title }}</td>
+        <td>{{ (usuarios | selectattr('id', 'equalto', prestamo.user_id) | first).name }}</td>
+        <td>{{ prestamo.start_date.strftime('%Y-%m-%d %H:%M') }}</td>
         <td>
-          {% if loan.returned %}
+          {% if prestamo.returned %}
             <span class="badge bg-success">Devuelto</span>
           {% else %}
             <span class="badge bg-warning text-dark">Activo</span>
           {% endif %}
         </td>
         <td class="text-end">
-          {% if not loan.returned %}
+          {% if not prestamo.returned %}
           <form method="post" class="d-inline">
             <input type="hidden" name="action" value="return" />
-            <input type="hidden" name="loan_id" value="{{ loan.id }}" />
+            <input type="hidden" name="loan_id" value="{{ prestamo.id }}" />
             <button class="btn btn-sm btn-outline-success">Devolver</button>
           </form>
           {% else %}
