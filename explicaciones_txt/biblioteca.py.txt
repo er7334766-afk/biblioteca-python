@@ -1,0 +1,22 @@
+Diccionario de variables
+- app: instancia principal de Flask.
+- AZURE_SQL_CONNECTION_STRING: cadena de conexión activa para Azure SQL.
+- connection_string: conexión normalizada que se usa para abrir la base de datos.
+- driver_name: nombre del driver ODBC detectado para SQL Server.
+- sql / params: consulta SQL y parámetros seguros para ejecutarla.
+- query_text: texto de búsqueda en minúsculas y sin espacios extremos.
+- filters: condiciones dinámicas para armar el WHERE.
+- user, book, loan: registros actuales de usuario, libro y préstamo.
+- total / new_total / available: controlan existencias de libros.
+- action: indica si el formulario de préstamos pide "borrow" o "return".
+
+Explicación del archivo
+Este archivo construye toda la aplicación web: conexión a Azure SQL, utilidades de consulta y rutas Flask.
+Se usa .strip() (similar a trim) en username, password, name, title, author y description para limpiar espacios al inicio/final y evitar guardar datos sucios.
+La función get_db_connection prepara la cadena con normalize_connection_string y replace_driver_name para adaptarse al driver real del entorno.
+query_db devuelve resultados como diccionarios para acceder por nombre de columna (por ejemplo row["total"]).
+execute_db ejecuta INSERT/UPDATE/DELETE y hace commit para persistir cambios.
+Las funciones require_login y require_admin protegen rutas y redirigen si no hay permisos.
+Las rutas /users, /categories, /books y /loans implementan CRUD y flujo de préstamo/devolución.
+Cuando se presta un libro se crea un registro en prestamos y se reduce available; cuando se devuelve se marca returned=1 y available aumenta.
+El context_processor inject_user comparte current_user, is_admin y helpers para que todas las plantillas puedan usarlos.

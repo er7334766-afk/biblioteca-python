@@ -1,0 +1,9 @@
+Diccionario de variables
+- categories: listado de categorías.
+- category: categoría iterada.
+- is_admin: controla botones de administración.
+
+Explicación del archivo
+Lista categorías existentes.
+Si el usuario es admin, se habilitan acciones de agregar, editar y eliminar.
+Cuando no hay datos, muestra mensaje de estado vacío.

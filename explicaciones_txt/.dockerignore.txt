@@ -1,0 +1,6 @@
+Diccionario de variables
+- No hay variables; son patrones de exclusión.
+
+Explicación del archivo
+Indica qué no debe copiarse al contexto de Docker build.
+Excluye cachés y entornos virtuales (como __pycache__, venv, build, dist, .git) para imágenes más limpias y ligeras.

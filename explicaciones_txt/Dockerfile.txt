@@ -1,0 +1,9 @@
+Diccionario de variables
+- ACCEPT_EULA: acepta la licencia de paquetes de Microsoft.
+- WORKDIR /app: directorio de trabajo dentro del contenedor.
+
+Explicación del archivo
+Este Dockerfile prepara una imagen Python 3.11 para ejecutar la app Flask con Gunicorn.
+Instala dependencias del sistema y drivers ODBC necesarios para conectar con Azure SQL.
+Copia requirements.txt, instala dependencias Python y luego copia el proyecto completo.
+Expone el puerto 5000 y levanta la app con gunicorn biblioteca:app.

@@ -1,0 +1,10 @@
+Diccionario de variables
+- user: usuario actual.
+- total_books, total_users, total_loans: totales mostrados en tarjetas.
+- top_users, top_books: rankings principales.
+- user_loans_count, book_loans_count: helpers para contar préstamos.
+
+Explicación del archivo
+Es el dashboard principal con métricas y rankings.
+Muestra resumen general y listas de usuarios/libros más solicitados.
+Usa helpers compartidos por context_processor para calcular conteos en pantalla.

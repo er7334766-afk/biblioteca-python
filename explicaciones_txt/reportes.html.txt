@@ -1,0 +1,11 @@
+Diccionario de variables
+- top_users: usuarios con más préstamos.
+- top_books: libros más solicitados.
+- date_summary: resumen de préstamos por fecha.
+- user_item, book_item: elementos iterados en rankings.
+- date, count: pares fecha-total para la tabla histórica.
+
+Explicación del archivo
+Vista de reportes para administradores.
+Muestra rankings y una tabla de actividad por fecha.
+Cuando no hay datos en una sección, se muestra mensaje vacío para claridad.
