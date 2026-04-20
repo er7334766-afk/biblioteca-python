@@ -8,7 +8,7 @@
         <form method="post">
           <div class="mb-3">
             <label class="form-label">Nombre</label>
-            <input name="name" type="text" class="form-control" required value="{{ category.name if category }}" />
+            <input name="name" type="text" class="form-control" required value="{{ categoria.name if categoria }}" />
           </div>
           <button class="btn btn-primary">{{ action }}</button>
           <a href="{{ url_for('list_categories') }}" class="btn btn-secondary ms-2">Cancelar</a>

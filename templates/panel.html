@@ -7,7 +7,7 @@
       <p class="lead">Administra préstamos, libros, categorías y usuarios desde un solo lugar.</p>
     </div>
     <div class="col-md-4 text-md-end">
-      <span class="badge bg-primary fs-6">Rol: {{ user.role }}</span>
+      <span class="badge bg-primary fs-6">Rol: {{ usuario.role }}</span>
     </div>
   </div>
 </div>
@@ -17,7 +17,7 @@
     <div class="card border-primary h-100">
       <div class="card-body">
         <h5 class="card-title">Libros</h5>
-        <p class="card-text">Total de libros registrados: <strong>{{ total_books }}</strong>.</p>
+        <p class="card-text">Total de libros registrados: <strong>{{ total_libros }}</strong>.</p>
         <a href="{{ url_for('list_books') }}" class="btn btn-primary btn-sm">Ver libros</a>
       </div>
     </div>
@@ -26,7 +26,7 @@
     <div class="card border-success h-100">
       <div class="card-body">
         <h5 class="card-title">Préstamos activos</h5>
-        <p class="card-text">Préstamos pendientes: <strong>{{ total_loans }}</strong>.</p>
+        <p class="card-text">Préstamos pendientes: <strong>{{ total_prestamos }}</strong>.</p>
         <a href="{{ url_for('manage_loans') }}" class="btn btn-success btn-sm">Gestionar préstamos</a>
       </div>
     </div>
@@ -35,7 +35,7 @@
     <div class="card border-info h-100">
       <div class="card-body">
         <h5 class="card-title">Categorías</h5>
-        <p class="card-text">Categorías disponibles: <strong>{{ categories|length if categories is defined else 0 }}</strong>.</p>
+        <p class="card-text">Categorías disponibles: <strong>{{ categorias|length if categorias is defined else 0 }}</strong>.</p>
         <a href="{{ url_for('list_categories') }}" class="btn btn-info btn-sm">Ver categorías</a>
       </div>
     </div>
@@ -47,10 +47,10 @@
     <div class="card shadow-sm">
       <div class="card-header">Usuarios con más préstamos</div>
       <div class="list-group list-group-flush">
-        {% for usuario_item in top_users[:5] %}
+        {% for usuario_item in usuarios_principales[:5] %}
         <div class="list-group-item d-flex justify-content-between align-items-center">
           {{ usuario_item.name }}
-          <span class="badge bg-secondary rounded-pill">{{ user_loans_count(usuario_item.id) }}</span>
+          <span class="badge bg-secondary rounded-pill">{{ conteo_prestamos_usuario(usuario_item.id) }}</span>
         </div>
         {% else %}
         <div class="list-group-item">No hay préstamos todavía.</div>
@@ -62,10 +62,10 @@
     <div class="card shadow-sm">
       <div class="card-header">Libros más solicitados</div>
       <div class="list-group list-group-flush">
-        {% for libro_item in top_books[:5] %}
+        {% for libro_item in libros_principales[:5] %}
         <div class="list-group-item d-flex justify-content-between align-items-center">
           {{ libro_item.title }}
-          <span class="badge bg-secondary rounded-pill">{{ book_loans_count(libro_item.id) }}</span>
+          <span class="badge bg-secondary rounded-pill">{{ conteo_prestamos_libro(libro_item.id) }}</span>
         </div>
         {% else %}
         <div class="list-group-item">No hay registros de préstamo.</div>

@@ -8,10 +8,10 @@
     <div class="card shadow-sm">
       <div class="card-header">Usuarios con más préstamos</div>
       <div class="list-group list-group-flush">
-        {% for usuario_item in top_users %}
+        {% for usuario_item in usuarios_principales %}
         <div class="list-group-item d-flex justify-content-between align-items-center">
           {{ usuario_item.name }}
-          <span class="badge bg-primary rounded-pill">{{ user_loans_count(usuario_item.id) }}</span>
+          <span class="badge bg-primary rounded-pill">{{ conteo_prestamos_usuario(usuario_item.id) }}</span>
         </div>
         {% else %}
         <div class="list-group-item">No hay datos.</div>
@@ -23,10 +23,10 @@
     <div class="card shadow-sm">
       <div class="card-header">Libros más solicitados</div>
       <div class="list-group list-group-flush">
-        {% for libro_item in top_books %}
+        {% for libro_item in libros_principales %}
         <div class="list-group-item d-flex justify-content-between align-items-center">
           {{ libro_item.title }}
-          <span class="badge bg-primary rounded-pill">{{ book_loans_count(libro_item.id) }}</span>
+          <span class="badge bg-primary rounded-pill">{{ conteo_prestamos_libro(libro_item.id) }}</span>
         </div>
         {% else %}
         <div class="list-group-item">No hay datos.</div>
@@ -46,7 +46,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for fecha, conteo in date_summary %}
+        {% for fecha, conteo in resumen_fechas %}
         <tr>
           <td>{{ fecha }}</td>
           <td>{{ conteo }}</td>

@@ -23,20 +23,20 @@
         </button>
         <div class="collapse navbar-collapse" id="navMenu">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            {% if current_user %}
+            {% if usuario_actual %}
             <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('list_books') }}">Libros</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_loans') }}">Préstamos</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('list_categories') }}">Categorías</a></li>
-            {% if is_admin %}
+            {% if es_admin %}
             <li class="nav-item"><a class="nav-link" href="{{ url_for('list_users') }}">Usuarios</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('reports') }}">Reportes</a></li>
             {% endif %}
             {% endif %}
           </ul>
           <div class="d-flex align-items-center text-white">
-            {% if current_user %}
-            <span class="me-3">{{ current_user.name }} ({{ current_user.role }})</span>
+            {% if usuario_actual %}
+            <span class="me-3">{{ usuario_actual.name }} ({{ usuario_actual.role }})</span>
             <a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">Cerrar sesión</a>
             {% else %}
             <a class="btn btn-outline-light btn-sm" href="{{ url_for('login') }}">Iniciar sesión</a>

@@ -268,13 +268,13 @@ def dashboard():
     )
     return render_template(
         "panel.html",
-        user=usuario,
-        total_books=total_libros,
-        total_users=total_usuarios,
-        total_loans=total_prestamos,
-        recent_loans=prestamos_recientes,
-        top_users=usuarios_principales,
-        top_books=libros_principales,
+        usuario=usuario,
+        total_libros=total_libros,
+        total_usuarios=total_usuarios,
+        total_prestamos=total_prestamos,
+        prestamos_recientes=prestamos_recientes,
+        usuarios_principales=usuarios_principales,
+        libros_principales=libros_principales,
     )
 
 
@@ -285,7 +285,7 @@ def list_users():
     if redirect_result := require_admin():
         return redirect_result
     lista_usuarios = query_db("SELECT * FROM usuarios ORDER BY name")
-    return render_template("usuarios.html", users=lista_usuarios)
+    return render_template("usuarios.html", usuarios=lista_usuarios)
 
 
 @app.route("/users/new", methods=["GET", "POST"])
@@ -306,7 +306,7 @@ def add_user():
         )
         flash("Usuario agregado correctamente.", "success")
         return redirect(url_for("list_users"))
-    return render_template("usuario_form.html", action="Crear", user=None)
+    return render_template("usuario_form.html", action="Crear", usuario=None)
 
 
 @app.route("/users/edit/<int:user_id>", methods=["GET", "POST"])
@@ -344,7 +344,7 @@ def edit_user(user_id):
             )
         flash("Usuario actualizado correctamente.", "success")
         return redirect(url_for("list_users"))
-    return render_template("usuario_form.html", action="Editar", user=usuario_item)
+    return render_template("usuario_form.html", action="Editar", usuario=usuario_item)
 
 
 @app.route("/users/delete/<int:user_id>")
@@ -363,7 +363,7 @@ def list_categories():
     if redirect_result := require_login():
         return redirect_result
     lista_categorias = query_db("SELECT * FROM categorias ORDER BY name")
-    return render_template("categorias.html", categories=lista_categorias)
+    return render_template("categorias.html", categorias=lista_categorias)
 
 
 @app.route("/categories/new", methods=["GET", "POST"])
@@ -379,7 +379,7 @@ def add_category():
         )
         flash("Categoría agregada correctamente.", "success")
         return redirect(url_for("list_categories"))
-    return render_template("categoria_form.html", action="Crear", category=None)
+    return render_template("categoria_form.html", action="Crear", categoria=None)
 
 
 @app.route("/categories/edit/<int:category_id>", methods=["GET", "POST"])
@@ -399,7 +399,7 @@ def edit_category(category_id):
         )
         flash("Categoría actualizada correctamente.", "success")
         return redirect(url_for("list_categories"))
-    return render_template("categoria_form.html", action="Editar", category=categoria)
+    return render_template("categoria_form.html", action="Editar", categoria=categoria)
 
 
 @app.route("/categories/delete/<int:category_id>")
@@ -432,10 +432,10 @@ def list_books():
     lista_categorias = query_db("SELECT * FROM categorias ORDER BY name")
     return render_template(
         "libros.html",
-        books=libros_filtrados,
-        categories=lista_categorias,
-        query=consulta,
-        selected_category=id_categoria,
+        libros=libros_filtrados,
+        categorias=lista_categorias,
+        consulta=consulta,
+        categoria_seleccionada=id_categoria,
     )
 
 
@@ -461,7 +461,7 @@ def add_book():
         flash("Libro agregado correctamente.", "success")
         return redirect(url_for("list_books"))
     lista_categorias = query_db("SELECT * FROM categorias ORDER BY name")
-    return render_template("libro_form.html", action="Crear", book=None, categories=lista_categorias)
+    return render_template("libro_form.html", action="Crear", libro=None, categorias=lista_categorias)
 
 
 @app.route("/books/edit/<int:book_id>", methods=["GET", "POST"])
@@ -492,7 +492,7 @@ def edit_book(book_id):
         flash("Libro actualizado correctamente.", "success")
         return redirect(url_for("list_books"))
     lista_categorias = query_db("SELECT * FROM categorias ORDER BY name")
-    return render_template("libro_form.html", action="Editar", book=libro, categories=lista_categorias)
+    return render_template("libro_form.html", action="Editar", libro=libro, categorias=lista_categorias)
 
 
 @app.route("/books/delete/<int:book_id>")
@@ -560,10 +560,10 @@ def manage_loans():
         )
     return render_template(
         "prestamos.html",
-        loans=prestamos_visibles,
-        books=query_db("SELECT * FROM libros ORDER BY title"),
-        users=query_db("SELECT * FROM usuarios ORDER BY name"),
-        user=usuario,
+        prestamos=prestamos_visibles,
+        libros=query_db("SELECT * FROM libros ORDER BY title"),
+        usuarios=query_db("SELECT * FROM usuarios ORDER BY name"),
+        usuario=usuario,
     )
 
 
@@ -590,9 +590,9 @@ def reports():
     resumen_fechas = loans_by_date()
     return render_template(
         "reportes.html",
-        top_users=usuarios_principales,
-        top_books=libros_principales,
-        date_summary=resumen_fechas,
+        usuarios_principales=usuarios_principales,
+        libros_principales=libros_principales,
+        resumen_fechas=resumen_fechas,
     )
 
 
@@ -600,12 +600,12 @@ def reports():
 def inject_user():
     usuario = current_user()
     return {
-        "current_user": usuario,
-        "is_admin": usuario["role"] == "admin" if usuario else False,
-        "categories": query_db("SELECT * FROM categorias ORDER BY name"),
-        "get_category": get_category,
-        "user_loans_count": user_loans_count,
-        "book_loans_count": book_loans_count,
+        "usuario_actual": usuario,
+        "es_admin": usuario["role"] == "admin" if usuario else False,
+        "categorias": query_db("SELECT * FROM categorias ORDER BY name"),
+        "obtener_categoria": get_category,
+        "conteo_prestamos_usuario": user_loans_count,
+        "conteo_prestamos_libro": book_loans_count,
     }
 
 

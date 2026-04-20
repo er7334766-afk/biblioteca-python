@@ -5,7 +5,7 @@
     <h2>Gestión de libros</h2>
     <p class="text-muted mb-0">Busca por título, autor o categoría.</p>
   </div>
-  {% if is_admin %}
+  {% if es_admin %}
   <a href="{{ url_for('add_book') }}" class="btn btn-primary btn-sm">Agregar libro</a>
   {% endif %}
 </div>
@@ -14,14 +14,14 @@
     <form method="get" class="row g-2 align-items-end">
       <div class="col-md-5">
         <label class="form-label">Buscar</label>
-        <input type="text" name="q" class="form-control" placeholder="Título, autor o categoría" value="{{ query }}" />
+        <input type="text" name="q" class="form-control" placeholder="Título, autor o categoría" value="{{ consulta }}" />
       </div>
       <div class="col-md-4">
         <label class="form-label">Categoría</label>
         <select name="category_id" class="form-select">
           <option value="">Todas</option>
-          {% for category in categories %}
-          <option value="{{ category.id }}" {% if selected_category == category.id %}selected{% endif %}>{{ category.name }}</option>
+          {% for categoria in categorias %}
+          <option value="{{ categoria.id }}" {% if categoria_seleccionada == categoria.id %}selected{% endif %}>{{ categoria.name }}</option>
           {% endfor %}
         </select>
       </div>
@@ -43,23 +43,23 @@
       </tr>
     </thead>
     <tbody>
-      {% for book in books %}
+      {% for libro in libros %}
       <tr>
-        <td>{{ book.title }}</td>
-        <td>{{ book.author }}</td>
-        <td>{{ get_category(book.category_id).name if get_category(book.category_id) else 'Sin categoría' }}</td>
-        <td>{{ book.available }} / {{ book.total }}</td>
+        <td>{{ libro.title }}</td>
+        <td>{{ libro.author }}</td>
+        <td>{{ obtener_categoria(libro.category_id).name if obtener_categoria(libro.category_id) else 'Sin categoría' }}</td>
+        <td>{{ libro.available }} / {{ libro.total }}</td>
         <td class="text-end">
-          {% if current_user.role == 'user' %}
+          {% if usuario_actual.role == 'user' %}
             <form method="post" action="{{ url_for('manage_loans') }}" class="d-inline">
               <input type="hidden" name="action" value="borrow" />
-              <input type="hidden" name="book_id" value="{{ book.id }}" />
-              <button class="btn btn-sm btn-outline-primary" {% if book.available == 0 %}disabled{% endif %}>Prestar</button>
+              <input type="hidden" name="book_id" value="{{ libro.id }}" />
+              <button class="btn btn-sm btn-outline-primary" {% if libro.available == 0 %}disabled{% endif %}>Prestar</button>
             </form>
           {% endif %}
-          {% if is_admin %}
-          <a href="{{ url_for('edit_book', book_id=book.id) }}" class="btn btn-outline-secondary btn-sm">Editar</a>
-          <a href="{{ url_for('delete_book', book_id=book.id) }}" class="btn btn-outline-danger btn-sm">Eliminar</a>
+          {% if es_admin %}
+          <a href="{{ url_for('edit_book', book_id=libro.id) }}" class="btn btn-outline-secondary btn-sm">Editar</a>
+          <a href="{{ url_for('delete_book', book_id=libro.id) }}" class="btn btn-outline-danger btn-sm">Eliminar</a>
           {% endif %}
         </td>
       </tr>
