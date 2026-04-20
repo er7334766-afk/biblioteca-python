@@ -1,0 +1,13 @@
+Diccionario de variables
+- books: libros filtrados para la tabla.
+- categories: categorías para el filtro.
+- query: texto de búsqueda.
+- selected_category: categoría seleccionada en el filtro.
+- book: libro actual del loop.
+- get_category: helper para resolver nombre de categoría.
+
+Explicación del archivo
+Pantalla de gestión y búsqueda de libros.
+Permite filtrar por texto y categoría con un formulario GET.
+Si el rol es usuario, puede solicitar préstamo; si es admin, puede editar/eliminar.
+Muestra disponibilidad como available/total para cada libro.

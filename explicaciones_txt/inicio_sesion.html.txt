@@ -1,0 +1,8 @@
+Diccionario de variables
+- username: nombre de usuario enviado por formulario.
+- password: contraseña enviada por formulario.
+
+Explicación del archivo
+Vista de login con formulario POST.
+Pide usuario y contraseña con campos required para validar del lado cliente.
+La validación real se completa en la ruta /login del backend.

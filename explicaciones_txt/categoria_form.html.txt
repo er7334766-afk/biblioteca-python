@@ -1,0 +1,9 @@
+Diccionario de variables
+- action: texto de acción (Crear/Editar).
+- category: categoría actual en edición.
+- name: nombre de la categoría.
+
+Explicación del archivo
+Formulario simple para alta/edición de categorías.
+Usa value condicional para precargar nombre en modo edición.
+Incluye botón de cancelar para volver al listado.

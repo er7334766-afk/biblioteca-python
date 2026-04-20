@@ -1,0 +1,8 @@
+Diccionario de variables
+- users: listado de usuarios.
+- user: elemento de iteración en la tabla.
+
+Explicación del archivo
+Muestra la gestión de usuarios para administradores.
+Lista nombre, usuario y rol; además ofrece botones de editar/eliminar.
+Tiene acceso directo para agregar usuario nuevo.

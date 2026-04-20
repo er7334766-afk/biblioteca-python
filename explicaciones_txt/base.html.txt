@@ -1,0 +1,11 @@
+Diccionario de variables
+- current_user: usuario autenticado actual.
+- is_admin: bandera booleana para mostrar opciones de admin.
+- messages: lista de mensajes flash.
+- category, message: tipo y texto de cada flash.
+
+Explicación del archivo
+Es la plantilla base que define navbar, contenedor principal y footer.
+Muestra menús según sesión y rol.
+Incluye bloque content para que otras vistas hereden estructura.
+Renderiza mensajes flash para feedback de acciones.

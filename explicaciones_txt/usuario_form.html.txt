@@ -1,0 +1,9 @@
+Diccionario de variables
+- action: texto de acción (Crear/Editar).
+- user: registro actual cuando se edita.
+- name, username, password, role: datos del formulario.
+
+Explicación del archivo
+Formulario reutilizable para crear o editar usuarios.
+Si user existe, la contraseña queda opcional para no reemplazarla sin querer.
+Permite asignar rol user/admin desde un select.

@@ -1,0 +1,10 @@
+Diccionario de variables
+- action: texto de acción (Crear/Editar).
+- book: libro actual (si edición).
+- categories: opciones para category_id.
+- title, author, total, description: campos principales del libro.
+
+Explicación del archivo
+Formulario para crear o editar libros.
+Permite seleccionar categoría y definir cantidad total de ejemplares.
+Reutiliza datos existentes cuando está en modo edición.

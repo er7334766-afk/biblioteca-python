@@ -1,0 +1,8 @@
+Diccionario de variables
+- No define variables; solo declara dependencias.
+
+Explicación del archivo
+Define librerías mínimas del proyecto:
+- Flask para el servidor web.
+- pyodbc para la conexión con SQL Server/Azure SQL.
+- gunicorn para servir la app en producción.

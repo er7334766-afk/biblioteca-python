@@ -1,0 +1,11 @@
+Diccionario de variables
+- loans: lista de préstamos visibles.
+- loan: préstamo iterado.
+- books, users: listas auxiliares para mostrar título y nombre.
+- action: indica operación "return" en formularios.
+- loan_id: identificador del préstamo a devolver.
+
+Explicación del archivo
+Muestra préstamos con estado y permite devolver libros activos.
+Usa selectattr para relacionar loan.book_id y loan.user_id con sus registros.
+Si el préstamo ya fue devuelto, reemplaza botón por texto "Sin acción".
