@@ -47,10 +47,10 @@
     <div class="card shadow-sm">
       <div class="card-header">Usuarios con más préstamos</div>
       <div class="list-group list-group-flush">
-        {% for user_item in top_users[:5] %}
+        {% for usuario_item in top_users[:5] %}
         <div class="list-group-item d-flex justify-content-between align-items-center">
-          {{ user_item.name }}
-          <span class="badge bg-secondary rounded-pill">{{ user_loans_count(user_item.id) }}</span>
+          {{ usuario_item.name }}
+          <span class="badge bg-secondary rounded-pill">{{ user_loans_count(usuario_item.id) }}</span>
         </div>
         {% else %}
         <div class="list-group-item">No hay préstamos todavía.</div>
@@ -62,10 +62,10 @@
     <div class="card shadow-sm">
       <div class="card-header">Libros más solicitados</div>
       <div class="list-group list-group-flush">
-        {% for book_item in top_books[:5] %}
+        {% for libro_item in top_books[:5] %}
         <div class="list-group-item d-flex justify-content-between align-items-center">
-          {{ book_item.title }}
-          <span class="badge bg-secondary rounded-pill">{{ book_loans_count(book_item.id) }}</span>
+          {{ libro_item.title }}
+          <span class="badge bg-secondary rounded-pill">{{ book_loans_count(libro_item.id) }}</span>
         </div>
         {% else %}
         <div class="list-group-item">No hay registros de préstamo.</div>

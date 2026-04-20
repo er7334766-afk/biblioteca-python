@@ -8,10 +8,10 @@
     <div class="card shadow-sm">
       <div class="card-header">Usuarios con más préstamos</div>
       <div class="list-group list-group-flush">
-        {% for user_item in top_users %}
+        {% for usuario_item in top_users %}
         <div class="list-group-item d-flex justify-content-between align-items-center">
-          {{ user_item.name }}
-          <span class="badge bg-primary rounded-pill">{{ user_loans_count(user_item.id) }}</span>
+          {{ usuario_item.name }}
+          <span class="badge bg-primary rounded-pill">{{ user_loans_count(usuario_item.id) }}</span>
         </div>
         {% else %}
         <div class="list-group-item">No hay datos.</div>
@@ -23,10 +23,10 @@
     <div class="card shadow-sm">
       <div class="card-header">Libros más solicitados</div>
       <div class="list-group list-group-flush">
-        {% for book_item in top_books %}
+        {% for libro_item in top_books %}
         <div class="list-group-item d-flex justify-content-between align-items-center">
-          {{ book_item.title }}
-          <span class="badge bg-primary rounded-pill">{{ book_loans_count(book_item.id) }}</span>
+          {{ libro_item.title }}
+          <span class="badge bg-primary rounded-pill">{{ book_loans_count(libro_item.id) }}</span>
         </div>
         {% else %}
         <div class="list-group-item">No hay datos.</div>
@@ -46,10 +46,10 @@
         </tr>
       </thead>
       <tbody>
-        {% for date, count in date_summary %}
+        {% for fecha, conteo in date_summary %}
         <tr>
-          <td>{{ date }}</td>
-          <td>{{ count }}</td>
+          <td>{{ fecha }}</td>
+          <td>{{ conteo }}</td>
         </tr>
         {% else %}
         <tr><td colspan="2" class="text-center">No hay préstamos registrados.</td></tr>
