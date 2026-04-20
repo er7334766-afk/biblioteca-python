@@ -69,7 +69,7 @@ def reemplazar_nombre_controlador(cadena_conexion: str, nombre_controlador: str)
 def obtener_conexion_bd():
     if not CADENA_CONEXION_AZURE_SQL:
         raise RuntimeError(
-            "Configure CADENA_CONEXION_AZURE_SQL with the correct Azure SQL credentials."
+            "Configure AZURE_SQL_CONNECTION_STRING with the correct Azure SQL credentials."
         )
 
     cadena_conexion = normalizar_cadena_conexion(CADENA_CONEXION_AZURE_SQL)
