@@ -439,7 +439,7 @@ def listar_libros():
         books=libros_filtrados,
         categories=lista_categorias,
         query=query,
-        selected_category=category_id,
+        categoria_seleccionada=category_id,
     )
 
 
