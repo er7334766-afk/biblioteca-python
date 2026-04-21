@@ -4,6 +4,7 @@ import os
 
 import pyodbc
 from flask import Flask, flash, redirect, render_template, request, session, url_for
+from werkzeug.exceptions import HTTPException
 
 app = Flask(__name__)
 app.secret_key = "clave_de_prueba_cambiar"
@@ -162,24 +163,30 @@ def get_category(category_id):
 
 
 def search_books(query, category_id):
-    sql = "SELECT * FROM libros"
+    sql = (
+        "SELECT l.*, c.name AS category_name "
+        "FROM libros l "
+        "LEFT JOIN categorias c ON c.id = l.category_id"
+    )
     filters = []
     params = []
     query_text = (query or "").strip().lower()
 
     if query_text:
-        filters.append("(LOWER(title) LIKE ? OR LOWER(author) LIKE ?)")
+        filters.append(
+            "(LOWER(l.title) LIKE ? OR LOWER(l.author) LIKE ? OR LOWER(c.name) LIKE ?)"
+        )
         like_value = f"%{query_text}%"
-        params.extend([like_value, like_value])
+        params.extend([like_value, like_value, like_value])
 
     if category_id:
-        filters.append("category_id = ?")
+        filters.append("l.category_id = ?")
         params.append(category_id)
 
     if filters:
         sql += " WHERE " + " AND ".join(filters)
 
-    sql += " ORDER BY title"
+    sql += " ORDER BY l.title"
     return query_db(sql, params)
 
 
@@ -608,6 +615,8 @@ def inject_user():
 
 @app.errorhandler(Exception)
 def handle_exception(exc):
+    if isinstance(exc, HTTPException):
+        return exc
     logging.exception("Unhandled exception")
     return f"<h1>Internal Server Error</h1><pre>{str(exc)}</pre>", 500
 

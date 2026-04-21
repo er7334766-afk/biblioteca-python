@@ -47,7 +47,7 @@
       <tr>
         <td>{{ book.title }}</td>
         <td>{{ book.author }}</td>
-        <td>{{ get_category(book.category_id).name if get_category(book.category_id) else 'Sin categoría' }}</td>
+        <td>{{ book.category_name if book.category_name else 'Sin categoría' }}</td>
         <td>{{ book.available }} / {{ book.total }}</td>
         <td class="text-end">
           {% if current_user.role == 'user' %}
