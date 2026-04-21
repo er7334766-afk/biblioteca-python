@@ -2,8 +2,8 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h2>Categorías</h2>
-  {% if is_admin %}
-  <a href="{{ url_for('add_category') }}" class="btn btn-primary btn-sm">Agregar categoría</a>
+  {% if es_admin %}
+  <a href="{{ url_for('agregar_categoria') }}" class="btn btn-primary btn-sm">Agregar categoría</a>
   {% endif %}
 </div>
 <div class="table-responsive shadow-sm rounded">
@@ -11,17 +11,17 @@
     <thead class="table-dark">
       <tr>
         <th>Nombre</th>
-        {% if is_admin %}<th class="text-end">Acciones</th>{% endif %}
+        {% if es_admin %}<th class="text-end">Acciones</th>{% endif %}
       </tr>
     </thead>
     <tbody>
-      {% for category in categories %}
+      {% for category in categorias %}
       <tr>
         <td>{{ category.name }}</td>
-        {% if is_admin %}
+        {% if es_admin %}
         <td class="text-end">
-          <a href="{{ url_for('edit_category', category_id=category.id) }}" class="btn btn-outline-secondary btn-sm">Editar</a>
-          <a href="{{ url_for('delete_category', category_id=category.id) }}" class="btn btn-outline-danger btn-sm">Eliminar</a>
+          <a href="{{ url_for('editar_categoria', category_id=category.id) }}" class="btn btn-outline-secondary btn-sm">Editar</a>
+          <a href="{{ url_for('eliminar_categoria', category_id=category.id) }}" class="btn btn-outline-danger btn-sm">Eliminar</a>
         </td>
         {% endif %}
       </tr>

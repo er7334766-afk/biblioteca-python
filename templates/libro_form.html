@@ -17,7 +17,7 @@
           <div class="mb-3">
             <label class="form-label">Categoría</label>
             <select name="category_id" class="form-select" required>
-              {% for category in categories %}
+              {% for category in categorias %}
               <option value="{{ category.id }}" {% if book and book.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
               {% endfor %}
             </select>
@@ -31,7 +31,7 @@
             <textarea name="description" class="form-control" rows="3">{{ book.description if book }}</textarea>
           </div>
           <button class="btn btn-primary">{{ action }}</button>
-          <a href="{{ url_for('list_books') }}" class="btn btn-secondary ms-2">Cancelar</a>
+          <a href="{{ url_for('listar_libros') }}" class="btn btn-secondary ms-2">Cancelar</a>
         </form>
       </div>
     </div>
