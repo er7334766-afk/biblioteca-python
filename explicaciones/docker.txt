@@ -1,0 +1,50 @@
+Archivos Docker explicados
+
+1) Dockerfile
+
+Objetivo
+- Construir una imagen lista para ejecutar la app Flask con Gunicorn y soporte ODBC para SQL Server/Azure SQL.
+
+Bloques principales
+- FROM python:3.11-slim
+  - Usa imagen base liviana de Python 3.11.
+
+- Instalación de paquetes del sistema
+  - Instala utilidades y dependencias ODBC (unixodbc, unixodbc-dev, tdsodbc, build-essential, etc.).
+  - Agrega el repositorio de Microsoft.
+  - Instala drivers msodbcsql18 y msodbcsql17.
+
+- WORKDIR /app
+  - Define el directorio de trabajo dentro del contenedor.
+
+- COPY requirements.txt /app/ + pip install
+  - Copia dependencias de Python e instala Flask/pyodbc/gunicorn.
+
+- COPY . /app
+  - Copia el código del proyecto.
+
+- EXPOSE 5000
+  - Expone el puerto 5000.
+
+- CMD ["gunicorn", "biblioteca:app", "--bind", "0.0.0.0:5000"]
+  - Arranca Gunicorn usando el objeto app del módulo biblioteca.py.
+
+Variables y comandos importantes (en español)
+- ACCEPT_EULA: aceptación de licencia de drivers Microsoft.
+- WORKDIR: ruta de trabajo.
+- EXPOSE: puerto publicado por la app.
+- CMD: comando final de ejecución.
+
+2) .dockerignore
+
+Objetivo
+- Evitar copiar archivos innecesarios al contexto de build Docker.
+
+Qué excluye
+- Cachés de Python (__pycache__, *.pyc, *.pyo, *.pyd).
+- Entornos virtuales (env/, venv/, ENV/).
+- Artefactos de build (build/, dist/, *.egg-info).
+- Carpeta .git.
+
+Beneficio
+- Builds más rápidos, imágenes más limpias y menor tamaño final.

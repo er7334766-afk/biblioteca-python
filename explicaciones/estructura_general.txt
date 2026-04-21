@@ -1,0 +1,25 @@
+Resumen del repositorio (enfocado)
+
+Este proyecto es una aplicación web de biblioteca hecha en Python con Flask.
+La organización principal está centrada en:
+
+1) biblioteca.py
+- Archivo principal de la aplicación.
+- Contiene la configuración, conexión a base de datos, lógica de negocio y rutas HTTP.
+
+2) templates/
+- Plantillas HTML (Jinja2) para vistas como usuarios, libros, préstamos y reportes.
+
+3) Dockerfile y .dockerignore
+- Definen cómo construir y ejecutar la aplicación en contenedor.
+
+4) requirements.txt
+- Dependencias principales: Flask, pyodbc y gunicorn.
+
+Tecnologías clave
+- Python 3.11
+- Flask (servidor web y rutas)
+- Jinja2 (renderizado de plantillas)
+- pyodbc (conexión a Azure SQL / SQL Server por ODBC)
+- Gunicorn (servidor WSGI en producción)
+- Docker (empaquetado y despliegue)

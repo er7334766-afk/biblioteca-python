@@ -1,0 +1,83 @@
+biblioteca.py explicado (en español)
+
+Qué hace este archivo
+- Es el núcleo de la app.
+- Define:
+  - Configuración de Flask.
+  - Conexión a base de datos SQL Server/Azure SQL.
+  - Funciones auxiliares para consultas.
+  - Rutas para autenticación, usuarios, categorías, libros, préstamos y reportes.
+  - Manejo global de errores.
+
+Estructura lógica
+
+1) Configuración inicial
+- Se crea app = Flask(__name__).
+- Se define una clave de sesión (secret_key).
+- Se toma la cadena de conexión desde la variable de entorno AZURE_SQL_CONNECTION_STRING.
+
+2) Capa de conexión y acceso a datos
+- Funciones de bajo nivel:
+  - get_sql_server_driver: busca un driver ODBC compatible instalado.
+  - normalize_connection_string: normaliza campos de autenticación en la cadena.
+  - replace_driver_name: reemplaza/inyecta el driver dentro de la cadena.
+  - get_db_connection: abre conexión pyodbc y valida errores de driver.
+  - query_db: ejecuta SELECT y regresa lista de diccionarios.
+  - execute_db: ejecuta INSERT/UPDATE/DELETE y hace commit.
+
+Variables clave (nombres explicados en español)
+- app: aplicación Flask.
+- secret_key: clave de sesión.
+- DEFAULT_AZURE_SQL_CONNECTION_STRING: cadena de conexión por defecto.
+- AZURE_SQL_CONNECTION_STRING: cadena final tomada del entorno o default.
+- connection_string: cadena usada para conectar.
+- driver_name: nombre del driver ODBC detectado.
+- params: parámetros de consulta SQL.
+- rows: filas de resultado.
+- last_id: último ID insertado.
+
+3) Funciones de sesión y permisos
+- current_user: obtiene el usuario autenticado.
+- require_login: exige sesión iniciada.
+- require_admin: exige rol administrador.
+
+4) Funciones de dominio
+- Usuarios:
+  - get_user_by_username
+  - get_user_by_id
+- Libros y categorías:
+  - get_book
+  - get_category
+  - search_books
+- Métricas/reportes:
+  - book_loans_count
+  - user_loans_count
+  - loans_by_date
+
+5) Rutas HTTP principales
+- Autenticación:
+  - /, /login, /logout
+- Panel:
+  - /dashboard
+- Usuarios:
+  - /users, /users/new, /users/edit/<id>, /users/delete/<id>
+- Categorías:
+  - /categories, /categories/new, /categories/edit/<id>, /categories/delete/<id>
+- Libros:
+  - /books, /books/new, /books/edit/<id>, /books/delete/<id>
+- Préstamos:
+  - /loans
+- Reportes:
+  - /reports
+
+6) Integración con plantillas
+- inject_user (context_processor) inyecta datos globales para las vistas:
+  - current_user, is_admin, categories y funciones de conteo.
+
+7) Manejo de errores y arranque
+- handle_exception captura errores no HTTP y registra logs.
+- Bloque final ejecuta app.run cuando se lanza directamente.
+
+Cómo está organizado el código
+- Todo está en un solo archivo (estilo monolítico).
+- Orden general: configuración -> acceso a datos -> helpers de auth -> lógica de dominio -> rutas -> utilidades globales.
