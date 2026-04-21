@@ -272,7 +272,7 @@ def panel():
     )
     return render_template(
         "panel.html",
-        usuario=usuario,
+        user=usuario,
         total_libros=total_libros,
         total_usuarios=total_usuarios,
         total_prestamos=total_prestamos,
@@ -567,7 +567,7 @@ def gestionar_prestamos():
         loans=prestamos_visibles,
         books=consultar_bd("SELECT * FROM libros ORDER BY title"),
         users=consultar_bd("SELECT * FROM usuarios ORDER BY name"),
-        usuario=usuario,
+        user=usuario,
     )
 
 
