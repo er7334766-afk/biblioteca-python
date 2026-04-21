@@ -26,7 +26,7 @@ CADENA_CONEXION_AZURE_SQL = os.environ.get(
 )
 
 
-def obtener_controlador_sql_server():
+def obtener_controlador_servidor_sql():
     nombres_candidatos = [
         "ODBC Driver 18 for SQL Server",
         "ODBC Driver 17 for SQL Server",
@@ -74,7 +74,7 @@ def obtener_conexion_bd():
         )
 
     cadena_conexion = normalizar_cadena_conexion(CADENA_CONEXION_AZURE_SQL)
-    nombre_controlador = obtener_controlador_sql_server()
+    nombre_controlador = obtener_controlador_servidor_sql()
     if nombre_controlador:
         cadena_conexion = reemplazar_nombre_controlador(cadena_conexion, nombre_controlador)
     else:
@@ -98,10 +98,10 @@ def obtener_conexion_bd():
         ) from excepcion
 
 
-def consultar_bd(consulta_sql, parametros=None, uno=False):
+def consultar_bd(consulta, parametros=None, uno=False):
     conexion = obtener_conexion_bd()
     cursor = conexion.cursor()
-    cursor.execute(consulta_sql, parametros or ())
+    cursor.execute(consulta, parametros or ())
     columnas = [column[0] for column in cursor.description] if cursor.description else []
     filas = [dict(zip(columnas, fila)) for fila in cursor.fetchall()]
     cursor.close()
@@ -109,10 +109,10 @@ def consultar_bd(consulta_sql, parametros=None, uno=False):
     return filas[0] if uno and filas else filas
 
 
-def ejecutar_bd(consulta_sql, parametros=None):
+def ejecutar_bd(consulta, parametros=None):
     conexion = obtener_conexion_bd()
     cursor = conexion.cursor()
-    cursor.execute(consulta_sql, parametros or ())
+    cursor.execute(consulta, parametros or ())
     conexion.commit()
     ultimo_id = None
     try:
