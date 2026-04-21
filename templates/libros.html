@@ -5,8 +5,8 @@
     <h2>Gestión de libros</h2>
     <p class="text-muted mb-0">Busca por título, autor o categoría.</p>
   </div>
-  {% if is_admin %}
-  <a href="{{ url_for('add_book') }}" class="btn btn-primary btn-sm">Agregar libro</a>
+  {% if es_admin %}
+  <a href="{{ url_for('agregar_libro') }}" class="btn btn-primary btn-sm">Agregar libro</a>
   {% endif %}
 </div>
 <div class="card mb-4 shadow-sm">
@@ -21,7 +21,7 @@
         <select name="category_id" class="form-select">
           <option value="">Todas</option>
           {% for category in categories %}
-          <option value="{{ category.id }}" {% if selected_category == category.id %}selected{% endif %}>{{ category.name }}</option>
+          <option value="{{ category.id }}" {% if categoria_seleccionada == category.id %}selected{% endif %}>{{ category.name }}</option>
           {% endfor %}
         </select>
       </div>
@@ -50,16 +50,16 @@
         <td>{{ book.category_name if book.category_name else 'Sin categoría' }}</td>
         <td>{{ book.available }} / {{ book.total }}</td>
         <td class="text-end">
-          {% if current_user.role == 'user' %}
-            <form method="post" action="{{ url_for('manage_loans') }}" class="d-inline">
+          {% if usuario_actual.role == 'user' %}
+            <form method="post" action="{{ url_for('gestionar_prestamos') }}" class="d-inline">
               <input type="hidden" name="action" value="borrow" />
               <input type="hidden" name="book_id" value="{{ book.id }}" />
               <button class="btn btn-sm btn-outline-primary" {% if book.available == 0 %}disabled{% endif %}>Prestar</button>
             </form>
           {% endif %}
-          {% if is_admin %}
-          <a href="{{ url_for('edit_book', book_id=book.id) }}" class="btn btn-outline-secondary btn-sm">Editar</a>
-          <a href="{{ url_for('delete_book', book_id=book.id) }}" class="btn btn-outline-danger btn-sm">Eliminar</a>
+          {% if es_admin %}
+          <a href="{{ url_for('editar_libro', book_id=book.id) }}" class="btn btn-outline-secondary btn-sm">Editar</a>
+          <a href="{{ url_for('eliminar_libro', book_id=book.id) }}" class="btn btn-outline-danger btn-sm">Eliminar</a>
           {% endif %}
         </td>
       </tr>
